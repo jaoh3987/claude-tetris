@@ -259,3 +259,131 @@ kbd {
 #restart-btn:hover {
   background: var(--restart-hover);
 }
+
+/* ---- Records / Highscores ---- */
+.records-section {
+  padding-top: 8px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+}
+
+.records-table td {
+  padding: 3px 2px;
+  color: var(--text);
+}
+
+.records-table .rank-col {
+  color: var(--label-color);
+  width: 18px;
+}
+
+.records-table .score-col {
+  text-align: right;
+  color: var(--accent);
+}
+
+.records-table .empty-row td {
+  color: var(--label-color);
+  font-style: italic;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 11px;
+}
+
+.records-table .highscore-highlight td {
+  color: var(--overlay-title-color);
+  font-weight: 700;
+}
+
+.records-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.records-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.records-stat-label {
+  color: var(--label-color);
+}
+
+.records-stat-value {
+  font-family: 'Courier New', Courier, monospace;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.reset-records-btn {
+  margin-top: 6px;
+  background: transparent;
+  color: var(--controls-color);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.reset-records-btn:hover {
+  background: var(--kbd-bg);
+  color: var(--text);
+}
+
+.overlay-records-table {
+  width: 220px;
+}
+
+.new-highscore {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.new-highscore.hidden {
+  display: none;
+}
+
+.new-highscore-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+#highscore-name-input {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
+  width: 140px;
+}
+
+#save-highscore-btn {
+  background: var(--restart-bg);
+  color: var(--restart-text);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.15s;
+}
+
+#save-highscore-btn:hover {
+  background: var(--restart-hover);
+}

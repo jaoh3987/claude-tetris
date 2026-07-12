@@ -51,6 +51,24 @@
             <li><kbd>P</kbd> pausa</li>
           </ul>
         </div>
+
+        <div class="panel-section records-section" id="records-panel">
+          <span class="label">RECORDS</span>
+          <table class="records-table" id="records-table">
+            <tbody id="records-table-body"></tbody>
+          </table>
+          <div class="records-stats">
+            <div class="records-stat">
+              <span class="records-stat-label">Mejor combo</span>
+              <span class="records-stat-value" id="best-combo-value">0</span>
+            </div>
+            <div class="records-stat">
+              <span class="records-stat-label">Máx. líneas</span>
+              <span class="records-stat-value" id="max-lines-value">0</span>
+            </div>
+          </div>
+          <button id="reset-records-btn" class="reset-records-btn">Resetear records</button>
+        </div>
       </aside>
     </div>
 
@@ -58,6 +76,19 @@
       <div class="overlay-box">
         <p id="overlay-title">GAME OVER</p>
         <p id="overlay-score"></p>
+
+        <div id="new-highscore" class="new-highscore hidden">
+          <span class="label">¡Nuevo récord! Ingresa tu nombre</span>
+          <div class="new-highscore-input-row">
+            <input type="text" id="highscore-name-input" maxlength="12" placeholder="Nombre" />
+            <button id="save-highscore-btn">Guardar</button>
+          </div>
+        </div>
+
+        <table class="records-table overlay-records-table" id="overlay-records-table">
+          <tbody id="overlay-records-table-body"></tbody>
+        </table>
+
         <button id="restart-btn">Reiniciar</button>
       </div>
     </div>

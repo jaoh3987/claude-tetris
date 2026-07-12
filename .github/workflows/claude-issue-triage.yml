@@ -52,8 +52,10 @@ jobs:
                - No elimines labels existentes que sigan siendo relevantes.
 
             4. Publica un comentario en el issue (en español) con
-               `gh issue comment ${{ github.event.issue.number }} --body "..."` que contenga un
-               **diagnóstico general del problema**, incluyendo:
+               `gh issue comment ${{ github.event.issue.number }} --body "..."`, formateado en
+               Markdown válido y bien estructurado (usa encabezados, listas y bloques de código con
+               ```js cuando cites fragmentos de código, de modo que GitHub lo renderice correctamente),
+               que contenga un **diagnóstico general del problema**, incluyendo:
                - Un resumen breve del problema reportado.
                - La causa probable o hipótesis, si se puede inferir del código (revisa `game.js`,
                  `index.html` y `style.css` según corresponda, apoyándote en la arquitectura descrita

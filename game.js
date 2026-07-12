@@ -42,6 +42,12 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggleInput = document.getElementById('theme-toggle-input');
+const pauseMenu = document.getElementById('pause-menu');
+const resumeBtn = document.getElementById('resume-btn');
+const pauseRestartBtn = document.getElementById('pause-restart-btn');
+const controlsToggleBtn = document.getElementById('controls-toggle-btn');
+const pauseControls = document.getElementById('pause-controls');
+const startLevelSelect = document.getElementById('start-level-select');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 
@@ -51,14 +57,55 @@ function applyTheme(theme) {
   localStorage.setItem('tetris-theme', theme);
 }
 
+function getStartLevel() {
+  const stored = parseInt(localStorage.getItem('tetris-start-level'), 10);
+  return Number.isInteger(stored) && stored >= 1 && stored <= 10 ? stored : 1;
+}
+
+function applyStartLevel(value) {
+  const clamped = Math.min(10, Math.max(1, parseInt(value, 10) || 1));
+  localStorage.setItem('tetris-start-level', String(clamped));
+  startLevelSelect.value = String(clamped);
+  return clamped;
+}
+
 function gridLineColor() {
   return getComputedStyle(document.documentElement).getPropertyValue('--grid-line').trim() || '#22222e';
 }
 
 applyTheme(localStorage.getItem('tetris-theme') === 'light' ? 'light' : 'dark');
+applyStartLevel(getStartLevel());
 
 themeToggleInput.addEventListener('change', () => {
   applyTheme(themeToggleInput.checked ? 'light' : 'dark');
+});
+
+startLevelSelect.addEventListener('change', () => {
+  applyStartLevel(startLevelSelect.value);
+});
+
+startLevelSelect.addEventListener('keydown', e => {
+  e.stopPropagation();
+});
+
+resumeBtn.addEventListener('click', () => {
+  togglePause();
+});
+
+pauseRestartBtn.addEventListener('click', () => {
+  init();
+});
+
+controlsToggleBtn.addEventListener('click', () => {
+  pauseControls.classList.toggle('hidden');
+});
+
+pauseMenu.addEventListener('click', e => {
+  e.stopPropagation();
+});
+
+pauseMenu.addEventListener('keydown', e => {
+  e.stopPropagation();
 });
 
 function createBoard() {
@@ -242,6 +289,9 @@ function endGame() {
   cancelAnimationFrame(animId);
   overlayTitle.textContent = 'GAME OVER';
   overlayScore.textContent = `Puntuación: ${score.toLocaleString()}`;
+  pauseMenu.classList.add('hidden');
+  pauseControls.classList.add('hidden');
+  restartBtn.classList.remove('hidden');
   overlay.classList.remove('hidden');
 }
 
@@ -249,12 +299,19 @@ function togglePause() {
   if (gameOver) return;
   paused = !paused;
   if (!paused) {
+    pauseMenu.classList.add('hidden');
+    pauseControls.classList.add('hidden');
+    restartBtn.classList.remove('hidden');
+    overlay.classList.add('hidden');
     lastTime = performance.now();
     loop(lastTime);
   } else {
     cancelAnimationFrame(animId);
     overlayTitle.textContent = 'PAUSA';
     overlayScore.textContent = '';
+    restartBtn.classList.add('hidden');
+    startLevelSelect.value = String(getStartLevel());
+    pauseMenu.classList.remove('hidden');
     overlay.classList.remove('hidden');
   }
 }
@@ -280,22 +337,25 @@ function init() {
   board = createBoard();
   score = 0;
   lines = 0;
-  level = 1;
+  level = getStartLevel();
   paused = false;
   gameOver = false;
-  dropInterval = 1000;
+  dropInterval = Math.max(100, 1000 - (level - 1) * 90);
   dropAccum = 0;
   lastTime = performance.now();
   next = randomPiece();
   spawn();
   updateHUD();
+  pauseMenu.classList.add('hidden');
+  pauseControls.classList.add('hidden');
+  restartBtn.classList.remove('hidden');
   overlay.classList.add('hidden');
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
 
 document.addEventListener('keydown', e => {
-  if (e.code === 'KeyP') { togglePause(); return; }
+  if (e.code === 'KeyP' || e.code === 'Escape') { e.preventDefault(); togglePause(); return; }
   if (paused || gameOver) return;
   switch (e.code) {
     case 'ArrowLeft':

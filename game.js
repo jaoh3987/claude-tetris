@@ -14,7 +14,11 @@ const COLORS = [
   '#64b5f6', // J - pale blue
   '#ffb74d', // L - orange
   '#f06292', // + Cruz - rosa
+  '#ff1744', // Bomba - rojo
 ];
+
+const BOMB_TYPE = 9;
+const BOMB_CHANCE = 0.03;
 
 const PIECES = [
   null,
@@ -26,6 +30,7 @@ const PIECES = [
   [[6,0,0],[6,6,6],[0,0,0]],                  // J
   [[0,0,7],[7,7,7],[0,0,0]],                  // L
   [[0,8,0],[8,8,8],[0,8,0]],                  // + Cruz
+  [[9]],                                      // Bomba
 ];
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
@@ -43,7 +48,7 @@ const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggleInput = document.getElementById('theme-toggle-input');
 
-let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId, explosions;
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
@@ -66,9 +71,10 @@ function createBoard() {
 }
 
 function randomPiece() {
-  const type = Math.floor(Math.random() * 8) + 1;
+  const isBomb = Math.random() < BOMB_CHANCE;
+  const type = isBomb ? BOMB_TYPE : Math.floor(Math.random() * 8) + 1;
   const shape = PIECES[type].map(row => [...row]);
-  return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0 };
+  return { type, shape, x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2), y: 0, isBomb };
 }
 
 function collide(shape, ox, oy) {
@@ -154,8 +160,36 @@ function softDrop() {
   }
 }
 
+function explodeBomb() {
+  const cx = current.x;
+  const cy = current.y;
+  for (let r = cy - 1; r <= cy + 1; r++) {
+    if (r < 0 || r >= ROWS) continue;
+    for (let c = cx - 1; c <= cx + 1; c++) {
+      if (c < 0 || c >= COLS) continue;
+      board[r][c] = 0;
+    }
+  }
+  spawnExplosionEffect(cx, cy);
+}
+
+function spawnExplosionEffect(cx, cy) {
+  const particles = [];
+  const count = 16;
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.3;
+    const speed = 1.5 + Math.random() * 2;
+    particles.push({ angle, speed, size: 3 + Math.random() * 3 });
+  }
+  explosions.push({ cx, cy, start: performance.now(), duration: 400, particles });
+}
+
 function lockPiece() {
-  merge();
+  if (current.isBomb) {
+    explodeBomb();
+  } else {
+    merge();
+  }
   clearLines();
   spawn();
 }
@@ -221,9 +255,42 @@ function draw() {
         drawBlock(ctx, current.x + c, gy + r, current.shape[r][c], BLOCK, 0.2);
 
   // current piece
+  const bombAlpha = current.isBomb
+    ? 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(performance.now() / 120))
+    : undefined;
   for (let r = 0; r < current.shape.length; r++)
     for (let c = 0; c < current.shape[r].length; c++)
-      drawBlock(ctx, current.x + c, current.y + r, current.shape[r][c], BLOCK);
+      drawBlock(ctx, current.x + c, current.y + r, current.shape[r][c], BLOCK, bombAlpha);
+
+  drawExplosions();
+}
+
+function drawExplosions() {
+  const now = performance.now();
+  explosions = explosions.filter(ex => now - ex.start < ex.duration);
+  for (const ex of explosions) {
+    const t = (now - ex.start) / ex.duration;
+    const centerX = (ex.cx + 0.5) * BLOCK;
+    const centerY = (ex.cy + 0.5) * BLOCK;
+
+    ctx.globalAlpha = Math.max(0, 1 - t) * 0.6;
+    ctx.fillStyle = '#fff176';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, BLOCK * 1.8 * t, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = Math.max(0, 1 - t);
+    for (const p of ex.particles) {
+      const dist = p.speed * t * BLOCK * 2;
+      const px = centerX + Math.cos(p.angle) * dist;
+      const py = centerY + Math.sin(p.angle) * dist;
+      ctx.fillStyle = t < 0.5 ? '#ffeb3b' : '#ff5722';
+      ctx.beginPath();
+      ctx.arc(px, py, p.size * (1 - t), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
 }
 
 function drawNext() {
@@ -285,6 +352,7 @@ function init() {
   gameOver = false;
   dropInterval = 1000;
   dropAccum = 0;
+  explosions = [];
   lastTime = performance.now();
   next = randomPiece();
   spawn();
